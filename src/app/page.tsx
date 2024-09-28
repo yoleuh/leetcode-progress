@@ -29,7 +29,11 @@ const LeetCodeCalculator = () => {
   const [experience, setExperience] = useState<
     "beginner" | "normal" | "experienced"
   >("normal");
-  const [result, setResult] = useState<number | null>(null);
+  const [result, setResult] = useState<{
+    easy: number | null;
+    medium: number | null;
+    hard: number | null;
+  }>({ easy: null, medium: null, hard: null });
 
   const calculateProblems = () => {
     const timePerDay = parseInt(hours) * 60 + parseInt(minutes);
@@ -44,40 +48,57 @@ const LeetCodeCalculator = () => {
         break;
     }
 
+    const totalTime = timePerDay * durationDays;
+
+    const difficultyTimes = {
+      easy: 20,
+      medium: 60,
+      hard: 120,
+    };
+
+    const adjustedTimes = {
+      easy: difficultyTimes.easy,
+      medium: difficultyTimes.medium,
+      hard: difficultyTimes.hard,
+    };
+
+    if (experience === "experienced") {
+      adjustedTimes.easy /= 2;
+      adjustedTimes.medium /= 2;
+      adjustedTimes.hard /= 2;
+    } else if (experience === "beginner") {
+      adjustedTimes.easy *= 2;
+      adjustedTimes.medium *= 2;
+      adjustedTimes.hard *= 2;
+    }
+
     const selectedDifficulties = Object.entries(difficulties).filter(
       ([, isSelected]) => isSelected,
     );
+
     if (selectedDifficulties.length === 0) {
       alert("Please select at least one difficulty level.");
       return;
     }
 
-    const averageTime =
-      selectedDifficulties.reduce((acc, [difficulty]) => {
-        switch (difficulty) {
-          case "easy":
-            return acc + 20;
-          case "medium":
-            return acc + 60;
-          case "hard":
-            return acc + 120;
-          default:
-            return acc;
-        }
-      }, 0) / selectedDifficulties.length;
+    const timePerDifficulty = totalTime / selectedDifficulties.length;
+    const totalProblems = { easy: 0, medium: 0, hard: 0 };
 
-    let timePerProblem = averageTime;
+    selectedDifficulties.forEach(([difficulty]) => {
+      totalProblems[difficulty] = Math.floor(
+        timePerDifficulty / adjustedTimes[difficulty],
+      );
+    });
 
-    if (experience === "experienced") {
-      timePerProblem /= 2;
-    } else if (experience === "beginner") {
-      timePerProblem *= 2;
-    }
-
-    const totalProblems: number = Math.floor(
-      (timePerDay * durationDays) / timePerProblem,
-    );
     setResult(totalProblems);
+  };
+
+  const formatResult = () => {
+    const parts = [];
+    if (result.hard) parts.push(`${result.hard} hard`);
+    if (result.medium) parts.push(`${result.medium} medium`);
+    if (result.easy) parts.push(`${result.easy} easy`);
+    return parts.join(", ");
   };
 
   return (
@@ -200,13 +221,15 @@ const LeetCodeCalculator = () => {
               Calculate
             </Button>
 
-            {result !== null && (
-              <div className="mt-4 text-center">
-                <p className="text-lg font-semibold">
-                  You can solve approximately {result} problems!
-                </p>
-              </div>
-            )}
+            {result.hard !== null &&
+              result.medium !== null &&
+              result.easy !== null && (
+                <div className="mt-4 text-center">
+                  <p className="text-lg font-semibold">
+                    You can solve approximately {formatResult()} problems!
+                  </p>
+                </div>
+              )}
           </div>
         </CardContent>
       </Card>

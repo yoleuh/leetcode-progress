@@ -1,101 +1,217 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+
+const LeetCodeCalculator = () => {
+  const [hours, setHours] = useState<string>("0");
+  const [minutes, setMinutes] = useState<string>("0");
+  const [duration, setDuration] = useState<string>("");
+  const [durationUnit, setDurationUnit] = useState<"days" | "weeks" | "months">(
+    "days",
+  );
+  const [difficulties, setDifficulties] = useState({
+    easy: false,
+    medium: false,
+    hard: false,
+  });
+  const [experience, setExperience] = useState<
+    "beginner" | "normal" | "experienced"
+  >("normal");
+  const [result, setResult] = useState<number | null>(null);
+
+  const calculateProblems = () => {
+    const timePerDay = parseInt(hours) * 60 + parseInt(minutes);
+    let durationDays = parseFloat(duration);
+
+    switch (durationUnit) {
+      case "weeks":
+        durationDays *= 7;
+        break;
+      case "months":
+        durationDays *= 30;
+        break;
+    }
+
+    const selectedDifficulties = Object.entries(difficulties).filter(
+      ([, isSelected]) => isSelected,
+    );
+    if (selectedDifficulties.length === 0) {
+      alert("Please select at least one difficulty level.");
+      return;
+    }
+
+    const averageTime =
+      selectedDifficulties.reduce((acc, [difficulty]) => {
+        switch (difficulty) {
+          case "easy":
+            return acc + 20;
+          case "medium":
+            return acc + 60;
+          case "hard":
+            return acc + 120;
+          default:
+            return acc;
+        }
+      }, 0) / selectedDifficulties.length;
+
+    let timePerProblem = averageTime;
+
+    if (experience === "experienced") {
+      timePerProblem /= 2;
+    } else if (experience === "beginner") {
+      timePerProblem *= 2;
+    }
+
+    const totalProblems: number = Math.floor(
+      (timePerDay * durationDays) / timePerProblem,
+    );
+    setResult(totalProblems);
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center">
+            LeetCode Progress Calculator
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex space-x-2">
+              <div className="flex-1">
+                <Label htmlFor="hours">Hours</Label>
+                <Select value={hours} onValueChange={setHours}>
+                  <SelectTrigger id="hours">
+                    <SelectValue placeholder="Hours" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[...Array(24)].map((_, i) => (
+                      <SelectItem key={i} value={i.toString()}>
+                        {i} hours
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1">
+                <Label htmlFor="minutes">Minutes</Label>
+                <Select value={minutes} onValueChange={setMinutes}>
+                  <SelectTrigger id="minutes">
+                    <SelectValue placeholder="Minutes" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[0, 15, 30, 45].map((min) => (
+                      <SelectItem key={min} value={min.toString()}>
+                        {min} min
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            <div className="flex space-x-2">
+              <div className="flex-1">
+                <Label htmlFor="duration">Duration</Label>
+                <Input
+                  id="duration"
+                  type="number"
+                  value={duration}
+                  onChange={(e) => setDuration(e.target.value)}
+                  placeholder="Enter duration"
+                />
+              </div>
+              <div className="flex-1">
+                <Label htmlFor="durationUnit">Unit</Label>
+                <Select
+                  value={durationUnit}
+                  onValueChange={(value: "days" | "weeks" | "months") =>
+                    setDurationUnit(value)
+                  }
+                >
+                  <SelectTrigger id="durationUnit">
+                    <SelectValue placeholder="Select unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="days">Days</SelectItem>
+                    <SelectItem value="weeks">Weeks</SelectItem>
+                    <SelectItem value="months">Months</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Label>Difficulty Levels</Label>
+              <div className="flex space-x-4 mt-2">
+                {(["easy", "medium", "hard"] as const).map((diff) => (
+                  <div key={diff} className="flex items-center">
+                    <Checkbox
+                      id={diff}
+                      checked={difficulties[diff]}
+                      onCheckedChange={(checked) =>
+                        setDifficulties((prev) => ({
+                          ...prev,
+                          [diff]: checked === true,
+                        }))
+                      }
+                    />
+                    <Label htmlFor={diff} className="ml-2 capitalize">
+                      {diff}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="experience">Experience Level</Label>
+              <Select
+                value={experience}
+                onValueChange={(value: "beginner" | "normal" | "experienced") =>
+                  setExperience(value)
+                }
+              >
+                <SelectTrigger id="experience">
+                  <SelectValue placeholder="Select experience" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="beginner">Beginner</SelectItem>
+                  <SelectItem value="normal">Normal</SelectItem>
+                  <SelectItem value="experienced">Experienced</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button onClick={calculateProblems} className="w-full">
+              Calculate
+            </Button>
+
+            {result !== null && (
+              <div className="mt-4 text-center">
+                <p className="text-lg font-semibold">
+                  You can solve approximately {result} problems!
+                </p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
-}
+};
+
+export default LeetCodeCalculator;
